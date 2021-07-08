@@ -1,7 +1,6 @@
 import time        # 计算算法的运行时间
-import numpy as np
 import math
-import scipy as sp
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
@@ -66,13 +65,25 @@ def showRuntime(time, title):
     print(f"Array Sorted in {time*1000:.1f} ms ")
 
 
+def showAnimation(arr, title):
+    FPS = 30.0
+    global fig, ax, container, text
+    fig, ax = plt.subplots()
+    container = ax.bar(np.arange(0, len(arr), 1), arr, align="edge", width=0.8)
+    ax.set_xlim([0, len(arr)])
+    ax.set(xlabel="Index", ylabel="Value", title=title)
+    text = ax.text(0, 1000, "")
+    ani = FuncAnimation(fig, update, frames=range(
+        len(arr.full_copies)), interval=200, repeat=False, blit=True)
+    plt.show()
+
+
 def update(frame):
     text.set_text(f" accesses = {math.floor(frame/2)}")
 
     for (rectangle, height) in zip(container.patches, arr.full_copies[frame]):
         rectangle.set_height(height)
         rectangle.set_color("dodgerblue")
-    # 1F77B4
     idx, op = arr.GetActivity(frame)
     if op == "get":
         container.patches[idx].set_color("tomato")
@@ -95,6 +106,7 @@ def InsertSort(arr):
 
     dt = time.perf_counter() - t0  # 算法运行时间
     showRuntime(dt, title)
+    showAnimation(arr, title)
 
 
 def QuickSort(arr):
@@ -103,6 +115,7 @@ def QuickSort(arr):
     quicksort(arr, 0, len(arr) - 1)
     dt = time.perf_counter() - t0
     showRuntime(dt, title)
+    showAnimation(arr, title)
 
 
 def quicksort(A, low, high):
@@ -136,6 +149,7 @@ def SelectSort(arr):
         arr[minIndex] = temp
     dt = time.perf_counter() - t0
     showRuntime(dt, title)
+    showAnimation(arr, title)
 
 
 def BubbleSort(arr):
@@ -148,24 +162,43 @@ def BubbleSort(arr):
                 arr[j], arr[j + 1] = arr[j + 1], arr[j]
     dt = time.perf_counter() - t0
     showRuntime(dt, title)
+    showAnimation(arr, title)
+
+
+def HeapSort(arr):
+    title = "Heap Sort"
+    t0 = time.perf_counter()
+    n = len(arr)
+    for i in range(n // 2 - 1, -1, -1):
+        heapify(arr, i, n)
+    for i in range(n - 1, 0, -1):
+        arr[0], arr[i] = arr[i], arr[0]
+        heapify(arr, 0, i)
+    dt = time.perf_counter() - t0
+    showRuntime(dt, title)
+    showAnimation(arr, title)
+
+
+def heapify(arr, index, heap_size):
+    largest = index
+    left_index = 2 * index + 1
+    right_index = 2 * index + 2
+    if left_index < heap_size and arr[left_index] > arr[largest]:
+        largest = left_index
+
+    if right_index < heap_size and arr[right_index] > arr[largest]:
+        largest = right_index
+
+    if largest != index:
+        arr[largest], arr[index] = arr[index], arr[largest]
+        heapify(arr, largest, heap_size)
 
 
 if __name__ == "__main__":
     arr = createRandomValue(30)
-    # InsertSort(arr)
-    BubbleSort(arr)
+
+    InsertSort(arr)
     # SelectSort(arr)
-
+    # BubbleSort(arr)
     # QuickSort(arr)
-
-    #showplt(arr, "Insert Sort")
-
-    FPS = 60.0
-    fig, ax = plt.subplots()
-    container = ax.bar(np.arange(0, len(arr), 1), arr, align="edge", width=0.8)
-    ax.set_xlim([0, len(arr)])
-    ax.set(xlabel="Index", ylabel="Value", title="Select Sort")
-    text = ax.text(0, 1000, "")
-    ani = FuncAnimation(fig, update, frames=range(
-        len(arr.full_copies)), blit=True, interval=100/FPS, repeat=False)
-    plt.show()
+    # HeapSort(arr)
